@@ -1,14 +1,22 @@
 package com.example.inmobiliaria.request;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class ApiClient {
 
-    private static final String BASE_URL = "https://inmobiliariaulp-amb5hwfqaraweyga.canadacentral-01.azurewebsites.net/";
+    public static final String BASE_URL = "https://inmobiliariaulp-amb5hwfqaraweyga.canadacentral-01.azurewebsites.net/";
     private static Retrofit retrofit;
+    private static ApiService apiService;
 
     public static Retrofit getRetrofit() {
         if (retrofit == null) {
@@ -19,12 +27,31 @@ public class ApiClient {
                     .addInterceptor(logging)
                     .build();
 
+            Gson gson = new GsonBuilder()
+                    .setLenient()
+                    .create();
+
+
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
-                    .addConverterFactory(ScalarsConverterFactory.create()) // recibir token como String
+                    .addConverterFactory(ScalarsConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
                     .client(client)
                     .build();
         }
         return retrofit;
+    }
+
+    public static ApiService getApiInmobiliaria() {
+        if (apiService == null) {
+            apiService = getRetrofit().create(ApiService.class);
+        }
+        return apiService;
+    }
+
+    public static String leerToken(Context context) {
+        SharedPreferences sp = context.getSharedPreferences("inmobiliaria", Context.MODE_PRIVATE);
+        return sp.getString("token", "");
     }
 }

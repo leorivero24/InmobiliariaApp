@@ -3,4 +3,7 @@
 
     <string name="navigation_drawer_open">Abrir menú</string>
     <string name="navigation_drawer_close">Cerrar menú</string>
+    <string name="google_maps_key">AIzaSyARDWGnICP_9uR1ef4_gVFQRYtV4cp0gZQ</string>
+    <string name="inmueble_imagen">Imagen del inmueble</string>
+
 </resources>

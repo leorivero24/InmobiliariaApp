@@ -32,6 +32,7 @@ public class LoginViewModel extends ViewModel {
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     tokenLiveData.postValue(response.body());
+
                 } else {
                     errorLiveData.postValue("Credenciales inválidas");
                 }
