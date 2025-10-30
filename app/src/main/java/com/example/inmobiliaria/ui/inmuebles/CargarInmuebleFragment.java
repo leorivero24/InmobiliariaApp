@@ -81,7 +81,7 @@ public class CargarInmuebleFragment extends Fragment {
             if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
                 Uri uri = result.getData().getData();
                 Log.d("CargarInmuebleFragment", "Imagen seleccionada: " + uri);
-                mViewModel.setMuri(uri); // <-- CORRECTO: usamos método público del ViewModel
+                mViewModel.setMuri(uri);
             }
         });
     }

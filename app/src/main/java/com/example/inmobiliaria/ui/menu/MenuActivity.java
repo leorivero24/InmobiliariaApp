@@ -118,7 +118,7 @@ public class MenuActivity extends AppCompatActivity {
 
         if (selectedFragment != null) {
             loadFragment(selectedFragment);
-            getSupportActionBar().setTitle(title); // 👈 cambia el título de la barra
+            getSupportActionBar().setTitle(title); //
         }
 
         drawerLayout.closeDrawers();

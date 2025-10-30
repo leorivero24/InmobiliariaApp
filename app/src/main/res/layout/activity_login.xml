@@ -96,13 +96,15 @@
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/bg_button_rounded"
-            android:padding="12dp"
-            android:stateListAnimator="@null"
             android:text="Iniciar sesión"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/purple_700"
             android:textAllCaps="false"
-            android:textColor="@android:color/white" />
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:stateListAnimator="@null"
+            android:foreground="?attr/selectableItemBackgroundBorderless" />
+
 
         <!-- Olvidaste contraseña -->
         <TextView
