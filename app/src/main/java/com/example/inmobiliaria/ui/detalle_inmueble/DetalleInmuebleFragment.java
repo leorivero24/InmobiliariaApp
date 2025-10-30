@@ -1,5 +1,5 @@
 package com.example.inmobiliaria.ui.detalle_inmueble;
-import com.example.inmobiliaria.ui.detalle_inmueble.DetalleInmuebleViewModel;
+
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
