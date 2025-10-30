@@ -1,10 +1,6 @@
-
-
-
 package com.example.inmobiliaria.ui.inmuebles;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,21 +11,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.inmobiliaria.R;
 import com.example.inmobiliaria.modelo.Inmueble;
-import com.example.inmobiliaria.request.ApiClient;
-import com.example.inmobiliaria.request.ApiService;
 import com.example.inmobiliaria.ui.detalle_inmueble.DetalleInmuebleFragment;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class InmueblesFragment extends Fragment {
 
@@ -37,6 +27,7 @@ public class InmueblesFragment extends Fragment {
     private InmueblesAdapter adapter;
     private ProgressBar progressBar;
     private Button btnAgregarInmueble;
+    private InmueblesViewModel viewModel;
 
     @Nullable
     @Override
@@ -49,17 +40,6 @@ public class InmueblesFragment extends Fragment {
         progressBar = view.findViewById(R.id.progressBar);
         btnAgregarInmueble = view.findViewById(R.id.btnAgregarInmueble);
 
-        // 🔹 Acción del botón "Agregar nuevo inmueble"
-        btnAgregarInmueble.setOnClickListener(v -> {
-            CargarInmuebleFragment nuevoFragment = new CargarInmuebleFragment();
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.content_frame, nuevoFragment) // asegúrate que content_frame sea tu contenedor principal
-                    .addToBackStack(null)
-                    .commit();
-        });
-
-        // 🔹 Configurar el RecyclerView con 2 columnas
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         adapter = new InmueblesAdapter(requireContext(), new ArrayList<>(), inmueble -> {
             DetalleInmuebleFragment detalleFragment = DetalleInmuebleFragment.newInstance(inmueble);
@@ -71,38 +51,28 @@ public class InmueblesFragment extends Fragment {
         });
         recyclerView.setAdapter(adapter);
 
-        // 🔹 Obtener token guardado
-        String token = requireActivity().getSharedPreferences("inmobiliaria", 0)
-                .getString("token", "");
-        Log.d("InmueblesFragment", "🔑 Token: " + token);
+        // 🔹 Inicializar ViewModel
+        viewModel = new ViewModelProvider(this).get(InmueblesViewModel.class);
 
-        cargarInmuebles(token);
+        // 🔹 Observadores LiveData
+        viewModel.getInmueblesLiveData().observe(getViewLifecycleOwner(), inmuebles -> adapter.setInmuebles(inmuebles));
+        viewModel.getLoading().observe(getViewLifecycleOwner(), isLoading -> progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE));
+        viewModel.getError().observe(getViewLifecycleOwner(), mensaje -> Toast.makeText(getContext(), mensaje, Toast.LENGTH_SHORT).show());
+
+        // 🔹 Acción del botón "Agregar nuevo inmueble"
+        btnAgregarInmueble.setOnClickListener(v -> {
+            CargarInmuebleFragment nuevoFragment = new CargarInmuebleFragment();
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.content_frame, nuevoFragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+        // 🔹 Obtener token y cargar inmuebles
+        String token = requireActivity().getSharedPreferences("inmobiliaria", 0).getString("token", "");
+        viewModel.cargarInmuebles(token);
 
         return view;
-    }
-
-    private void cargarInmuebles(String token) {
-        progressBar.setVisibility(View.VISIBLE);
-
-        ApiService api = ApiClient.getRetrofit().create(ApiService.class);
-        Call<List<Inmueble>> call = api.obtenerInmuebles("Bearer " + token);
-
-        call.enqueue(new Callback<List<Inmueble>>() {
-            @Override
-            public void onResponse(Call<List<Inmueble>> call, Response<List<Inmueble>> response) {
-                progressBar.setVisibility(View.GONE);
-                if (response.isSuccessful() && response.body() != null) {
-                    adapter.setInmuebles(response.body());
-                } else {
-                    Toast.makeText(getContext(), "Error al cargar inmuebles: " + response.code(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Inmueble>> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Fallo en la conexión: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 }
