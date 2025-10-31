@@ -48,9 +48,7 @@ public class MenuActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+
 
         viewModel = new ViewModelProvider(this).get(MenuViewModel.class);
 
