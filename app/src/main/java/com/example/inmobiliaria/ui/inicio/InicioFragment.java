@@ -8,37 +8,39 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.inmobiliaria.R;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 public class InicioFragment extends Fragment implements OnMapReadyCallback {
 
     private MapView mapView;
-    private GoogleMap gMap;
-    private static final LatLng INMOBILIARIA = new LatLng(-33.148411904954, -66.307301027387); // Cambia por la ubicación real
+    private InicioViewModel viewModel;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_inicio, container, false);
+
         mapView = view.findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        viewModel = new ViewModelProvider(this).get(InicioViewModel.class);
+
+        viewModel.getInmobiliariaLocation().observe(getViewLifecycleOwner(), loc -> {
+        });
+
         return view;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        gMap = googleMap;
-        gMap.addMarker(new MarkerOptions().position(INMOBILIARIA).title("Inmobiliaria ULP"));
-        gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(INMOBILIARIA, 15));
+        viewModel.setMap(googleMap);
     }
 
     // Ciclo de vida del MapView
