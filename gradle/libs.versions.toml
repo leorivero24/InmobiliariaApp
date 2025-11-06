@@ -13,6 +13,7 @@ loggingInterceptor = "5.0.0-alpha.16"
 lifecycleViewmodel = "2.10.0-alpha05"
 lifecycleLivedata = "2.10.0-alpha05"
 lifecycleRuntime = "2.10.0-alpha05"
+databindingRuntime = "8.13.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -28,6 +29,7 @@ logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-intercep
 lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycleViewmodel" }
 lifecycle-livedata = { group = "androidx.lifecycle", name = "lifecycle-livedata", version.ref = "lifecycleLivedata" }
 lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime", version.ref = "lifecycleRuntime" }
+databinding-runtime = { group = "androidx.databinding", name = "databinding-runtime", version.ref = "databindingRuntime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

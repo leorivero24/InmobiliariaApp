@@ -32,7 +32,9 @@ public class InicioFragment extends Fragment implements OnMapReadyCallback {
 
         viewModel = new ViewModelProvider(this).get(InicioViewModel.class);
 
+        // Observamos cambios en la ubicación
         viewModel.getInmobiliariaLocation().observe(getViewLifecycleOwner(), loc -> {
+            // El ViewModel maneja actualizar el mapa
         });
 
         return view;

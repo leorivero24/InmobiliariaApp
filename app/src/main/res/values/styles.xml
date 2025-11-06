@@ -16,4 +16,12 @@
         <item name="colorOnSecondary">@android:color/white</item>
     </style>
 
+    <style name="AlertDialogTheme" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="colorPrimary">@color/purple_700</item>
+        <item name="colorAccent">@color/purple_700</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:background">@android:color/black</item>
+    </style>
+
+
 </resources>

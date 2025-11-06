@@ -1,5 +1,5 @@
+//MVVM
 package com.example.inmobiliaria.ui.detalle_inmueble;
-
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -36,13 +36,8 @@ public class DetalleInmuebleFragment extends Fragment {
         binding = FragmentDetalleInmuebleBinding.inflate(inflater, container, false);
         mViewModel = new ViewModelProvider(this).get(DetalleInmuebleViewModel.class);
 
-        // Recuperar Inmueble de argumentos
-        if (getArguments() != null) {
-            Inmueble inmueble = (Inmueble) getArguments().getSerializable("inmueble");
-            if (inmueble != null) {
-                mViewModel.setInmueble(inmueble);
-            }
-        }
+        mViewModel.obtenerInmueble(getArguments());
+
 
         // Observamos LiveData para mostrar datos
         mViewModel.getInmueble().observe(getViewLifecycleOwner(), inmueble -> {
@@ -54,11 +49,11 @@ public class DetalleInmuebleFragment extends Fragment {
             binding.tvDetalleValor.setText("Valor: $" + inmueble.getValor());
             binding.tvDetalleDisponible.setText(inmueble.isDisponible() ? "Disponible" : "No disponible");
 
-            if (inmueble.getDuenio() != null) {
+
                 binding.tvDetalleDuenio.setText("Dueño: " + inmueble.getDuenio().getNombre());
                 binding.tvDetalleEmail.setText("Email: " + inmueble.getDuenio().getEmail());
                 binding.tvDetalleTelefono.setText("Teléfono: " + inmueble.getDuenio().getTelefono());
-            }
+
 
             // Cargar imagen
             Glide.with(this)

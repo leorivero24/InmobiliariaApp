@@ -1,3 +1,5 @@
+//MVVM
+
 package com.example.inmobiliaria.ui.detalle_inmueble;
 
 import android.app.Application;
@@ -10,7 +12,6 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.inmobiliaria.modelo.Inmueble;
-//import com.example.inmobiliaria.modelo.InmuebleUpdateRequest;
 import com.example.inmobiliaria.request.ApiClient;
 
 import retrofit2.Call;

@@ -1,5 +1,7 @@
 package com.example.inmobiliaria.modelo;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 public class Inmueble implements Serializable {
@@ -58,6 +60,9 @@ public class Inmueble implements Serializable {
 
     public Propietario getDuenio() { return duenio; }
     public void setDuenio(Propietario duenio) { this.duenio = duenio; }
+
+
+
 }
 
 

@@ -1,108 +1,132 @@
 package com.example.inmobiliaria.ui.login;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
+import android.text.InputType;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.example.inmobiliaria.R;
-import com.example.inmobiliaria.modelo.Propietario;
-import com.example.inmobiliaria.request.ApiClient;
-import com.example.inmobiliaria.request.ApiService;
+import com.example.inmobiliaria.databinding.ActivityLoginBinding;
 import com.example.inmobiliaria.ui.menu.MenuActivity;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+public class LoginActivity extends AppCompatActivity implements SensorEventListener {
 
-public class LoginActivity extends AppCompatActivity {
+    private LoginViewModel loginViewModel;
+    private ActivityLoginBinding binding;
 
-    private EditText etEmail, etPassword;
-    private Button btnLogin;
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
-        etEmail = findViewById(R.id.etEmail);
-        etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        btnLogin.setOnClickListener(v -> doLogin());
+        loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
+        observarViewModel();
+
+        binding.btnLogin.setOnClickListener(v -> {
+            String email = binding.etEmail.getText().toString().trim();
+            String pass = binding.etPassword.getText().toString().trim();
+            loginViewModel.login(email, pass);
+        });
+
+        binding.tvForgotPassword.setOnClickListener(v -> mostrarDialogoRecuperacion());
+
+        // 🔹 Sensor
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        if (sensorManager != null) {
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            if (accelerometer != null)
+                sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+            else
+                Toast.makeText(this, "No hay sensor de movimiento", Toast.LENGTH_LONG).show();
+        }
     }
 
-    private void doLogin() {
-        String usuario = etEmail.getText().toString().trim();
-        String clave = etPassword.getText().toString().trim();
+    private void observarViewModel() {
+        loginViewModel.getErrorLiveData().observe(this, msg ->
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        );
 
-        if (usuario.isEmpty() || clave.isEmpty()) {
-            Toast.makeText(this, "Ingrese usuario y clave", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        ApiService api = ApiClient.getRetrofit().create(ApiService.class);
-        Call<String> call = api.login(usuario, clave);
-
-        call.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String token = response.body();
-
-                    // Guardar token
-                    getSharedPreferences("inmobiliaria", MODE_PRIVATE)
-                            .edit()
-                            .putString("token", token)
-                            .apply();
-
-                    Toast.makeText(LoginActivity.this, "Login exitoso", Toast.LENGTH_SHORT).show();
-
-                    // ✅ Llamada para obtener el perfil del propietario
-                    ApiService apiService = ApiClient.getRetrofit().create(ApiService.class);
-                    Call<Propietario> propietarioCall = apiService.obtenerPropietario("Bearer " + token);
-
-                    propietarioCall.enqueue(new Callback<Propietario>() {
-                        @Override
-                        public void onResponse(Call<Propietario> call, Response<Propietario> response) {
-                            if (response.isSuccessful() && response.body() != null) {
-                                Propietario p = response.body();
-
-                                // Guardar nombre y correo
-                                getSharedPreferences("inmobiliaria", MODE_PRIVATE)
-                                        .edit()
-                                        .putString("nombre", p.getNombre() + " " + p.getApellido())
-                                        .putString("email", p.getEmail())
-                                        .apply();
-                            }
-
-                            // Ir al menú principal
-                            startActivity(new Intent(LoginActivity.this, MenuActivity.class));
-                            finish();
-                        }
-
-                        @Override
-                        public void onFailure(Call<Propietario> call, Throwable t) {
-                            Toast.makeText(LoginActivity.this, "Error al obtener datos del propietario", Toast.LENGTH_SHORT).show();
-
-                            // Aun así continuar al menú
-                            startActivity(new Intent(LoginActivity.this, MenuActivity.class));
-                            finish();
-                        }
-                    });
-
-                } else {
-                    Toast.makeText(LoginActivity.this, "Credenciales inválidas", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(LoginActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+        loginViewModel.getLoginSuccess().observe(this, success -> {
+            if (success != null && success) {
+                Toast.makeText(this, "Login exitoso", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, MenuActivity.class));
+                finish();
             }
         });
+
+        loginViewModel.getRecoveryEmailSent().observe(this, sent -> {
+            if (sent != null && sent) {
+                Toast.makeText(this, "Correo enviado correctamente", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        loginViewModel.getShakeDetected().observe(this, detected -> {
+            if (detected != null && detected) {
+                llamarInmobiliaria();
+                loginViewModel.resetShake();
+            }
+        });
+    }
+
+    private void mostrarDialogoRecuperacion() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Restablecer contraseña");
+
+        final androidx.appcompat.widget.AppCompatEditText input = new androidx.appcompat.widget.AppCompatEditText(this);
+        input.setHint("Ingresa tu correo electrónico");
+        input.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        builder.setView(input);
+
+        builder.setPositiveButton("Enviar", (dialog, which) -> {
+            String email = input.getText().toString().trim();
+            loginViewModel.enviarSolicitudRecuperacion(email);
+        });
+
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            loginViewModel.procesarSensor(event.values[0], event.values[1], event.values[2], System.currentTimeMillis());
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (sensorManager != null) sensorManager.unregisterListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (sensorManager != null && accelerometer != null)
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void llamarInmobiliaria() {
+        String numero = "tel:2664553747";
+        startActivity(new Intent(Intent.ACTION_DIAL, Uri.parse(numero)));
+        Toast.makeText(this, "Llamando a la inmobiliaria...", Toast.LENGTH_SHORT).show();
     }
 }

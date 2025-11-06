@@ -15,6 +15,11 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 public class ApiClient {
 
     public static final String BASE_URL = "https://inmobiliariaulp-amb5hwfqaraweyga.canadacentral-01.azurewebsites.net/";
+  // public static final String BASE_URL = "http://192.168.1.100:5000/";
+
+  //  public static final String BASE_URL = "http://192.168.2.105:5000/";
+
+
     private static Retrofit retrofit;
     private static ApiService apiService;
 

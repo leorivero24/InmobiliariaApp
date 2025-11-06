@@ -1,3 +1,5 @@
+//MVVM
+
 package com.example.inmobiliaria.ui.inmuebles;
 
 import static android.app.Activity.RESULT_OK;

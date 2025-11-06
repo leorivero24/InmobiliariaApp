@@ -15,7 +15,7 @@ public class InicioViewModel extends ViewModel {
     private GoogleMap gMap;
 
     public InicioViewModel() {
-        // Ubicación de la inmobiliaria
+        // Ubicación inicial de la inmobiliaria
         inmobiliariaLocation.setValue(new LatLng(-33.148411904954, -66.307301027387));
     }
 
@@ -23,11 +23,13 @@ public class InicioViewModel extends ViewModel {
         return inmobiliariaLocation;
     }
 
+    // Guardamos referencia del mapa cuando está listo
     public void setMap(GoogleMap googleMap) {
         this.gMap = googleMap;
         updateMap();
     }
 
+    // Actualiza marcador y cámara según LiveData
     private void updateMap() {
         if (gMap != null && inmobiliariaLocation.getValue() != null) {
             gMap.clear();
@@ -37,6 +39,7 @@ public class InicioViewModel extends ViewModel {
         }
     }
 
+    // Permite actualizar la ubicación dinámicamente
     public void updateLocation(double lat, double lng) {
         inmobiliariaLocation.setValue(new LatLng(lat, lng));
         updateMap();

@@ -1,6 +1,8 @@
 package com.example.inmobiliaria.request;
-import com.example.inmobiliaria.modelo.Inmueble;
 
+import com.example.inmobiliaria.modelo.Contrato;
+import com.example.inmobiliaria.modelo.Inmueble;
+import com.example.inmobiliaria.modelo.Pago;
 import com.example.inmobiliaria.modelo.Propietario;
 
 import java.util.List;
@@ -15,48 +17,61 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Part;
+import retrofit2.http.Path;
+import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.Field;
 
 public interface ApiService {
 
-    // LOGIN
-    @retrofit2.http.FormUrlEncoded
+    // 🔹 LOGIN
+    @FormUrlEncoded
     @POST("api/Propietarios/login")
     Call<String> login(
-            @retrofit2.http.Field("usuario") String usuario,
-            @retrofit2.http.Field("clave") String clave
+            @Field("usuario") String usuario,
+            @Field("clave") String clave
     );
 
-    // OBTENER DATOS DEL PROPIETARIO
+    // 🔹 OBTENER DATOS DEL PROPIETARIO
     @GET("api/Propietarios")
     Call<Propietario> obtenerPropietario(
             @Header("Authorization") String token
     );
 
-    // ACTUALIZAR DATOS DEL PROPIETARIO
+    // 🔹 ACTUALIZAR DATOS DEL PROPIETARIO
     @PUT("api/Propietarios/actualizar")
     Call<Propietario> actualizarPropietario(
             @Header("Authorization") String token,
             @Body Propietario propietario
     );
 
-    // CAMBIAR CONTRASEÑA
-    @retrofit2.http.FormUrlEncoded
+    // 🔹 CAMBIAR CONTRASEÑA
+    @FormUrlEncoded
     @PUT("api/Propietarios/changePassword")
     Call<Void> changePassword(
             @Header("Authorization") String token,
-            @retrofit2.http.Field("currentPassword") String currentPassword,
-            @retrofit2.http.Field("newPassword") String newPassword
+            @Field("currentPassword") String currentPassword,
+            @Field("newPassword") String newPassword
     );
 
-    // OBTENER TODOS LOS INMUEBLES DEL PROPIETARIO
+    // 🔹 RESETEAR CONTRASEÑA
+    @FormUrlEncoded
+    @POST("api/Propietarios/email")
+    Call<String> enviarEmailRecuperacion(
+            @Field("email") String email
+    );
+
+    // 🔹 OBTENER TODOS LOS INMUEBLES DEL PROPIETARIO
     @GET("api/Inmuebles")
     Call<List<Inmueble>> obtenerInmuebles(
             @Header("Authorization") String token
     );
 
-    // Actualizar inmueble
-    @PUT("/api/Inmuebles/actualizar")
-    Call<Inmueble> actualizarInmueble(@Header("Authorization") String token, @Body Inmueble request);
+    // 🔹 Actualizar inmueble
+    @PUT("api/Inmuebles/actualizar")
+    Call<Inmueble> actualizarInmueble(
+            @Header("Authorization") String token,
+            @Body Inmueble request
+    );
 
     @Multipart
     @POST("api/Inmuebles/cargar")
@@ -66,5 +81,22 @@ public interface ApiService {
             @Part("inmueble") RequestBody inmuebleJson
     );
 
+    // 🔹 Obtener inmuebles con contrato vigente
+    @GET("api/Inmuebles/GetContratoVigente")
+    Call<List<Inmueble>> obtenerInmueblesAlquilados(
+            @Header("Authorization") String token
+    );
 
+    // 🔹 Obtener contrato e inquilino por ID de inmueble
+    @GET("api/contratos/inmueble/{id}")
+    Call<Contrato> obtenerContratoPorInmueble(
+            @Header("Authorization") String token,
+            @Path("id") int idInmueble
+    );
+
+    @GET("api/pagos/contrato/{id}")
+    Call<List<Pago>> obtenerPagosPorContrato(
+            @Header("Authorization") String token,
+            @Path("id") int idContrato
+    );
 }

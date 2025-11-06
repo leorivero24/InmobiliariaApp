@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp">
+
+    <!-- Indicador de carga -->
+    <ProgressBar
+        android:id="@+id/progressBarContratos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+    <!-- Lista de contratos -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewContratos"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/progressBarContratos"
+        android:padding="8dp" />
+
+</RelativeLayout>

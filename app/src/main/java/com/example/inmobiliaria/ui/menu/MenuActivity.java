@@ -1,8 +1,9 @@
+//MVVM
+
 package com.example.inmobiliaria.ui.menu;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,10 +17,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.inmobiliaria.R;
-import com.example.inmobiliaria.ui.inicio.InicioFragment;
-import com.example.inmobiliaria.ui.inmuebles.InmueblesFragment;
 import com.example.inmobiliaria.ui.login.LoginActivity;
-import com.example.inmobiliaria.ui.perfil.PerfilFragment;
 import com.google.android.material.navigation.NavigationView;
 
 public class MenuActivity extends AppCompatActivity {
@@ -48,91 +46,67 @@ public class MenuActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
-
-
         viewModel = new ViewModelProvider(this).get(MenuViewModel.class);
 
-        // Vincular header (nombre y correo)
+        // 🔹 Vincular header (nombre y correo)
         TextView tvUserName = navigationView.getHeaderView(0).findViewById(R.id.tvUserName);
         TextView tvUserEmail = navigationView.getHeaderView(0).findViewById(R.id.tvUserEmail);
 
+        // 🔹 Observadores
         viewModel.getNombre().observe(this, tvUserName::setText);
         viewModel.getEmail().observe(this, tvUserEmail::setText);
+        viewModel.getMensajeToast().observe(this, msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show());
+        viewModel.getTitulo().observe(this, title -> getSupportActionBar().setTitle(title));
 
+        viewModel.getFragmentSeleccionado().observe(this, fragment -> {
+            if (fragment != null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.content_frame, fragment)
+                        .commit();
+                drawerLayout.closeDrawers();
+            }
+        });
+
+        viewModel.getMostrarDialogoLogout().observe(this, mostrar -> {
+            if (mostrar != null && mostrar) {
+                mostrarDialogoLogout();
+            }
+        });
+
+        viewModel.getIrALogin().observe(this, ir -> {
+            if (ir != null && ir) {
+                startActivity(new Intent(this, LoginActivity.class));
+                finish();
+            }
+        });
+
+        // Carga inicial
         viewModel.cargarDatosPropietario();
 
-        // Manejar clicks del menú
-        navigationView.setNavigationItemSelectedListener(this::onMenuItemSelected);
-
-        // ✅ Mostrar "Inicio" automáticamente al abrir la app
-        if (savedInstanceState == null) {
-            navigationView.setCheckedItem(R.id.nav_inicio); // marca el item activo
-            loadFragment(new InicioFragment());
-        }
-    }
-
-    private boolean onMenuItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        Fragment selectedFragment = null;
-        String title = getString(R.string.app_name); // valor por defecto
-
-        if (id == R.id.nav_inicio) {
-            selectedFragment = new InicioFragment();
-            title = "Ubicación";
-            Toast.makeText(this, "Ubicacion", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_perfil) {
-            selectedFragment = new PerfilFragment();
-            title = "Perfil";
-            Toast.makeText(this, "Perfil", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_inmuebles) {
-            selectedFragment = new InmueblesFragment();
-            title = "Inmuebles";
-            Toast.makeText(this, "Inmuebles", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_inquilinos) {
-            Toast.makeText(this, "Inquilinos", Toast.LENGTH_SHORT).show();
-            title = "Inquilinos";
-        } else if (id == R.id.nav_contratos) {
-            Toast.makeText(this, "Contratos", Toast.LENGTH_SHORT).show();
-            title = "Contratos";
-        } else if (id == R.id.nav_logout) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Cerrar sesión")
-                    .setMessage("¿Estás seguro que deseas cerrar sesión?")
-                    .setPositiveButton("Sí", (dialog, which) -> {
-                        // Acción de cerrar sesión
-                        viewModel.cerrarSesion();
-                        startActivity(new Intent(this, LoginActivity.class));
-                        finish();
-                    })
-                    .setNegativeButton("No", (dialog, which) -> {
-                        // Solo cierra el diálogo
-                        dialog.dismiss();
-                    })
-                    .setCancelable(false) // evita cerrar con toque fuera del diálogo
-                    .show();
-
+        navigationView.setNavigationItemSelectedListener(item -> {
+            viewModel.seleccionarMenu(item.getItemId());
             return true;
-        }
+        });
 
-        if (selectedFragment != null) {
-            loadFragment(selectedFragment);
-            getSupportActionBar().setTitle(title); //
+        // Mostrar Inicio por defecto
+        if (savedInstanceState == null) {
+            navigationView.setCheckedItem(R.id.nav_inicio);
+            viewModel.seleccionarMenu(R.id.nav_inicio);
         }
-
-        drawerLayout.closeDrawers();
-        return true;
     }
 
-
-    private void loadFragment(Fragment fragment) {
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.content_frame, fragment)
-                .commit();
+    private void mostrarDialogoLogout() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Estás seguro que deseas cerrar sesión?")
+                .setPositiveButton("Sí", (dialog, which) -> viewModel.cerrarSesion())
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .setCancelable(false)
+                .show();
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
         return toggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 }

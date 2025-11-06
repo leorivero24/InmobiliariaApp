@@ -1,10 +1,12 @@
 package com.example.inmobiliaria.ui.inmuebles;
 
-import android.util.Log;
+import android.app.Application;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import com.example.inmobiliaria.modelo.Inmueble;
 import com.example.inmobiliaria.request.ApiClient;
@@ -16,50 +18,39 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class InmueblesViewModel extends ViewModel {
+public class InmueblesViewModel extends AndroidViewModel {
 
-    private MutableLiveData<List<Inmueble>> inmueblesLiveData = new MutableLiveData<>();
-    private MutableLiveData<Boolean> loading = new MutableLiveData<>();
-    private MutableLiveData<String> error = new MutableLiveData<>();
+    private final MutableLiveData<List<Inmueble>> mInmueble = new MutableLiveData<>();
 
-    public LiveData<List<Inmueble>> getInmueblesLiveData() {
-        return inmueblesLiveData;
+    public InmueblesViewModel(@NonNull Application application) {
+        super(application);
+        leerInmuebles(); // ✅ igual que el profe
     }
 
-    public LiveData<Boolean> getLoading() {
-        return loading;
+    public LiveData<List<Inmueble>> getmInmueble() {
+        return mInmueble;
     }
 
-    public LiveData<String> getError() {
-        return error;
-    }
+    public void leerInmuebles() {
+        String token = ApiClient.leerToken(getApplication());
+        ApiService api = ApiClient.getApiInmobiliaria();
+        Call<List<Inmueble>> llamada = api.obtenerInmuebles("Bearer " + token);
 
-    public void cargarInmuebles(String token) {
-        loading.setValue(true);
-        ApiService api = ApiClient.getRetrofit().create(ApiService.class);
-        Call<List<Inmueble>> call = api.obtenerInmuebles("Bearer " + token);
-
-        Log.d("InmueblesViewModel", "📡 Solicitando lista de inmuebles...");
-
-        call.enqueue(new Callback<List<Inmueble>>() {
+        llamada.enqueue(new Callback<List<Inmueble>>() {
             @Override
             public void onResponse(Call<List<Inmueble>> call, Response<List<Inmueble>> response) {
-                loading.setValue(false);
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d("InmueblesViewModel", "✅ Inmuebles recibidos: " + response.body().size());
-                    inmueblesLiveData.postValue(response.body());
+                if (response.isSuccessful()) {
+                    mInmueble.postValue(response.body());
                 } else {
-                    Log.e("InmueblesViewModel", "❌ Error en respuesta: " + response.code());
-                    error.setValue("Error al cargar inmuebles: " + response.code());
+                    Toast.makeText(getApplication(), "No hay inmuebles disponibles: " + response.message(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<List<Inmueble>> call, Throwable t) {
-                loading.setValue(false);
-                Log.e("InmueblesViewModel", "⚠️ Error en la solicitud: " + t.getMessage());
-                error.setValue("Fallo en la conexión: " + t.getMessage());
+                Toast.makeText(getApplication(), "Error en servidor: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 }
+
