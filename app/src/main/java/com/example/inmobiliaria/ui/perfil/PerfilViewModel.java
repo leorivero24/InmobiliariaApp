@@ -20,18 +20,18 @@ public class PerfilViewModel extends ViewModel {
     private final MutableLiveData<Boolean> editMode = new MutableLiveData<>(false);
     private final MutableLiveData<String> mensaje = new MutableLiveData<>();
 
-    // 🔹 Getters LiveData
+    //  Getters LiveData
     public LiveData<Propietario> getPropietarioLiveData() { return propietarioLiveData; }
     public LiveData<Boolean> getEditMode() { return editMode; }
     public LiveData<String> getMensaje() { return mensaje; }
 
-    // 🔹 Callback para operaciones de perfil
+    //  Callback para operaciones de perfil
     public interface PerfilCallback {
         void onSuccess();
         void onError(String error);
     }
 
-    // 🔹 Cargar datos del propietario desde API
+    //  Cargar datos del propietario desde API
     public void cargarDatosPropietario(String token) {
         ApiService api = ApiClient.getRetrofit().create(ApiService.class);
         Call<Propietario> call = api.obtenerPropietario("Bearer " + token);
@@ -55,7 +55,7 @@ public class PerfilViewModel extends ViewModel {
         });
     }
 
-    // 🔹 Actualizar datos del propietario (sin tocar tu método original)
+    //  Actualizar datos del propietario
     public void actualizarPropietario(String token, String nombre, String apellido, String dni,
                                       String email, String telefono, PerfilCallback callback) {
         Propietario p = new Propietario();
@@ -89,7 +89,7 @@ public class PerfilViewModel extends ViewModel {
         });
     }
 
-    // 🔹 Cambiar contraseña (sin tocar tu método original)
+    // Cambiar contraseña
     public void cambiarPassword(String token, String currentPassword, String newPassword, PerfilCallback callback) {
         ApiService api = ApiClient.getRetrofit().create(ApiService.class);
         Call<Void> call = api.changePassword("Bearer " + token, currentPassword, newPassword);
@@ -111,7 +111,7 @@ public class PerfilViewModel extends ViewModel {
         });
     }
 
-    // 🔹 Método central para botón Editar/Guardar
+    // Metodo boton guardar editar
     public void onEditarGuardarClicked(String token,
                                        String nombre, String apellido, String dni,
                                        String email, String telefono,
