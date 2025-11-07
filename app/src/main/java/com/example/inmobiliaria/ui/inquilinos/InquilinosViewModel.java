@@ -83,7 +83,7 @@ public class InquilinosViewModel extends AndroidViewModel {
         });
     }
 
-    // 🔹 Nueva función para manejar clics (toda la lógica del if pasa acá)
+    //  función para manejar clics
     public void seleccionarContrato(Contrato contrato) {
         if (contrato != null && contrato.getInquilino() != null) {
             Inquilino inquilino = contrato.getInquilino();
