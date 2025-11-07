@@ -1,5 +1,7 @@
 package com.example.inmobiliaria.ui.perfil;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -17,23 +19,24 @@ public class PerfilViewModel extends ViewModel {
     private final MutableLiveData<Propietario> propietarioLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> editMode = new MutableLiveData<>(false);
     private final MutableLiveData<String> mensaje = new MutableLiveData<>();
-    private String token;
 
     // 🔹 Getters LiveData
     public LiveData<Propietario> getPropietarioLiveData() { return propietarioLiveData; }
     public LiveData<Boolean> getEditMode() { return editMode; }
     public LiveData<String> getMensaje() { return mensaje; }
 
-    // 🔹 Inicializar ViewModel con token
-    public void inicializar(String token) {
-        this.token = token;
-        cargarDatosPropietario();
+    // 🔹 Callback para operaciones de perfil
+    public interface PerfilCallback {
+        void onSuccess();
+        void onError(String error);
     }
 
-    // 🔹 Cargar datos del propietario
-    private void cargarDatosPropietario() {
+    // 🔹 Cargar datos del propietario desde API
+    public void cargarDatosPropietario(String token) {
         ApiService api = ApiClient.getRetrofit().create(ApiService.class);
         Call<Propietario> call = api.obtenerPropietario("Bearer " + token);
+
+        Log.d("PerfilViewModel", "📡 Solicitando datos del propietario...");
 
         call.enqueue(new Callback<Propietario>() {
             @Override
@@ -41,7 +44,7 @@ public class PerfilViewModel extends ViewModel {
                 if (response.isSuccessful() && response.body() != null) {
                     propietarioLiveData.postValue(response.body());
                 } else {
-                    mensaje.postValue("Error al obtener datos del perfil");
+                    mensaje.postValue("Error al obtener datos del perfil: " + response.code());
                 }
             }
 
@@ -52,28 +55,19 @@ public class PerfilViewModel extends ViewModel {
         });
     }
 
-    // 🔹 Botón Editar/Guardar
-    public void onEditarGuardarClicked(String nombre, String apellido, String dni,
-                                       String email, String telefono, String claveActual, String nuevaClave) {
-
-        if (!Boolean.TRUE.equals(editMode.getValue())) {
-            editMode.setValue(true); // Activar edición
-            return;
+    // 🔹 Actualizar datos del propietario (sin tocar tu método original)
+    public void actualizarPropietario(String token, String nombre, String apellido, String dni,
+                                      String email, String telefono, PerfilCallback callback) {
+        Propietario p = new Propietario();
+        if (propietarioLiveData.getValue() != null) {
+            p.setIdPropietario(propietarioLiveData.getValue().getIdPropietario());
         }
-
-        // 🔹 Actualizar datos del propietario
-        Propietario p = propietarioLiveData.getValue() != null ? propietarioLiveData.getValue() : new Propietario();
         p.setNombre(nombre);
         p.setApellido(apellido);
         p.setDni(dni);
         p.setEmail(email);
         p.setTelefono(telefono);
 
-        actualizarPropietario(p, claveActual, nuevaClave);
-    }
-
-    // 🔹 Actualizar propietario en servidor
-    private void actualizarPropietario(Propietario p, String claveActual, String nuevaClave) {
         ApiService api = ApiClient.getRetrofit().create(ApiService.class);
         Call<Propietario> call = api.actualizarPropietario("Bearer " + token, p);
 
@@ -82,41 +76,81 @@ public class PerfilViewModel extends ViewModel {
             public void onResponse(Call<Propietario> call, Response<Propietario> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     propietarioLiveData.postValue(response.body());
-                    editMode.postValue(false);
-
-                    if (!claveActual.isEmpty() && !nuevaClave.isEmpty()) {
-                        cambiarPassword(claveActual, nuevaClave);
-                    } else {
-                        mensaje.postValue("Datos actualizados");
-                    }
+                    callback.onSuccess();
                 } else {
-                    mensaje.postValue("Error al actualizar: " + response.code());
+                    callback.onError("Error al actualizar: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(Call<Propietario> call, Throwable t) {
-                mensaje.postValue(t.getMessage());
+                callback.onError(t.getMessage());
             }
         });
     }
 
-    // 🔹 Cambiar contraseña
-    private void cambiarPassword(String actual, String nueva) {
+    // 🔹 Cambiar contraseña (sin tocar tu método original)
+    public void cambiarPassword(String token, String currentPassword, String newPassword, PerfilCallback callback) {
         ApiService api = ApiClient.getRetrofit().create(ApiService.class);
-        Call<Void> call = api.changePassword("Bearer " + token, actual, nueva);
+        Call<Void> call = api.changePassword("Bearer " + token, currentPassword, newPassword);
 
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                mensaje.postValue(response.isSuccessful()
-                        ? "Datos y contraseña actualizados"
-                        : "Datos guardados, fallo al cambiar contraseña: " + response.code());
+                if (response.isSuccessful()) {
+                    callback.onSuccess();
+                } else {
+                    callback.onError("Error al cambiar contraseña: " + response.code());
+                }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                mensaje.postValue("Datos guardados, fallo al cambiar contraseña: " + t.getMessage());
+                callback.onError(t.getMessage());
+            }
+        });
+    }
+
+    // 🔹 Método central para botón Editar/Guardar
+    public void onEditarGuardarClicked(String token,
+                                       String nombre, String apellido, String dni,
+                                       String email, String telefono,
+                                       String claveActual, String nuevaClave) {
+
+        if (!Boolean.TRUE.equals(editMode.getValue())) {
+            // Activar modo edición
+            editMode.setValue(true);
+            return;
+        }
+
+        // Guardar cambios generales
+        actualizarPropietario(token, nombre, apellido, dni, email, telefono, new PerfilCallback() {
+            @Override
+            public void onSuccess() {
+                // Verificar si se quiere cambiar contraseña
+                if (!claveActual.isEmpty() && !nuevaClave.isEmpty()) {
+                    cambiarPassword(token, claveActual, nuevaClave, new PerfilCallback() {
+                        @Override
+                        public void onSuccess() {
+                            mensaje.postValue("Datos y contraseña actualizados");
+                            editMode.postValue(false);
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            mensaje.postValue("Datos guardados, fallo al cambiar contraseña: " + error);
+                            editMode.postValue(false);
+                        }
+                    });
+                } else {
+                    mensaje.postValue("Datos actualizados");
+                    editMode.postValue(false);
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                mensaje.postValue(error);
             }
         });
     }

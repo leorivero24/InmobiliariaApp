@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.inmobiliaria.R;
 import com.example.inmobiliaria.databinding.FragmentInmueblesBinding;
 import com.example.inmobiliaria.modelo.Inmueble;
 
@@ -26,6 +27,17 @@ public class InmueblesFragment extends Fragment {
         vm = new ViewModelProvider(this).get(InmueblesViewModel.class);
         binding = FragmentInmueblesBinding.inflate(inflater, container, false);
 
+        // Acción del botón "Agregar nuevo inmueble"
+        binding.btnAgregarInmueble.setOnClickListener(v -> {
+            CargarInmuebleFragment nuevoFragment = new CargarInmuebleFragment();
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.content_frame, nuevoFragment) // 👈 Asegúrate de usar el ID del contenedor real
+                    .addToBackStack(null)
+                    .commit();
+        });
+
+
         vm.getmInmueble().observe(getViewLifecycleOwner(), new Observer<List<Inmueble>>() {
             @Override
             public void onChanged(List<Inmueble> inmuebles) {
@@ -39,8 +51,11 @@ public class InmueblesFragment extends Fragment {
 
         return binding.getRoot();
 
-
     }
+
+
+
+
 
     @Override
     public void onResume() {

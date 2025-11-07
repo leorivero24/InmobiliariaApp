@@ -1,12 +1,10 @@
-////MVVM
 //package com.example.inmobiliaria.ui.perfil;
 //
 //import android.os.Bundle;
+//import android.util.Log;
 //import android.view.LayoutInflater;
 //import android.view.View;
 //import android.view.ViewGroup;
-//import android.widget.Button;
-//import android.widget.EditText;
 //import android.widget.Toast;
 //
 //import androidx.annotation.NonNull;
@@ -14,92 +12,120 @@
 //import androidx.fragment.app.Fragment;
 //import androidx.lifecycle.ViewModelProvider;
 //
-//import com.example.inmobiliaria.R;
-//import com.example.inmobiliaria.modelo.Propietario;
+//import com.example.inmobiliaria.databinding.FragmentPerfilBinding;
 //
 //public class PerfilFragment extends Fragment {
 //
-//    private EditText etNombre, etApellido, etDni, etEmail, etTelefono, etClave, etClaveActual, etNuevaClave;
-//    private Button btnEditarGuardar;
+//    private FragmentPerfilBinding binding;
 //    private PerfilViewModel viewModel;
+//    private boolean editMode = false;
 //
 //    @Nullable
 //    @Override
-//    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-//                             @Nullable Bundle savedInstanceState) {
-//        View view = inflater.inflate(R.layout.fragment_perfil, container, false);
-//
-//        // 🔹 Vincular vistas
-//        etNombre = view.findViewById(R.id.etNombre);
-//        etApellido = view.findViewById(R.id.etApellido);
-//        etDni = view.findViewById(R.id.etDNI);
-//        etEmail = view.findViewById(R.id.etEmail);
-//        etTelefono = view.findViewById(R.id.etTelefono);
-//        etClave = view.findViewById(R.id.etClave);
-//        etClaveActual = view.findViewById(R.id.etClaveActual);
-//        etNuevaClave = view.findViewById(R.id.etNuevaClave);
-//        btnEditarGuardar = view.findViewById(R.id.btnEditarGuardar);
-//
+//    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+//        binding = FragmentPerfilBinding.inflate(inflater, container, false);
 //        viewModel = new ViewModelProvider(this).get(PerfilViewModel.class);
 //
-//        // 🔹 Observar los datos del propietario
+//        // Inicialmente los campos de contraseña actual y nueva están deshabilitados
+//        binding.etClaveActual.setEnabled(false);
+//        binding.etNuevaClave.setEnabled(false);
+//        binding.etClave.setEnabled(false); // clave encriptada, solo lectura
+//
+//        // Observar los datos del propietario
 //        viewModel.getPropietarioLiveData().observe(getViewLifecycleOwner(), propietario -> {
-//                etNombre.setText(propietario.getNombre());
-//                etApellido.setText(propietario.getApellido());
-//                etDni.setText(propietario.getDni());
-//                etEmail.setText(propietario.getEmail());
-//                etTelefono.setText(propietario.getTelefono());
-//                etClave.setText(propietario.getClave());
-//
+//            if (propietario != null) {
+//                binding.etNombre.setText(propietario.getNombre());
+//                binding.etApellido.setText(propietario.getApellido());
+//                binding.etDNI.setText(propietario.getDni());
+//                binding.etEmail.setText(propietario.getEmail());
+//                binding.etTelefono.setText(propietario.getTelefono());
+//                binding.etClave.setText(propietario.getClave());
+//            }
 //        });
 //
-//        // 🔹 Observar cambios de estado (modo edición, mensajes, etc.)
-//        viewModel.getEditMode().observe(getViewLifecycleOwner(), editMode -> {
-//            boolean enabled = editMode;
-//            setEditTextsEnabled(enabled);
-//            btnEditarGuardar.setText(enabled ? "Guardar" : "Editar");
-//        });
-//
-//        viewModel.getMensaje().observe(getViewLifecycleOwner(),
-//                msg -> Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show());
-//
-//        // 🔹 Cargar datos desde ViewModel
+//        // Obtener token
 //        String token = requireActivity().getSharedPreferences("inmobiliaria", 0)
 //                .getString("token", "");
+//        Log.d("PerfilFragment", "🔑 Token obtenido: " + token);
+//
+//        // Cargar datos del propietario
 //        viewModel.cargarDatosPropietario(token);
 //
-//        // 🔹 Acción del botón, delegada al ViewModel
-//        btnEditarGuardar.setOnClickListener(v -> {
-//            viewModel.onEditarGuardarClicked(
-//                    token,
-//                    etNombre.getText().toString().trim(),
-//                    etApellido.getText().toString().trim(),
-//                    etDni.getText().toString().trim(),
-//                    etEmail.getText().toString().trim(),
-//                    etTelefono.getText().toString().trim(),
-//                    etClaveActual.getText().toString().trim(),
-//                    etNuevaClave.getText().toString().trim()
-//            );
+//        // Configurar botón Editar/Guardar
+//        binding.btnEditarGuardar.setOnClickListener(v -> {
+//            if (!editMode) {
+//                editMode = true;
+//                setEditTextsEnabled(true);
+//                binding.btnEditarGuardar.setText("Guardar");
+//            } else {
+//                // Guardar cambios generales
+//                String nombre = binding.etNombre.getText().toString().trim();
+//                String apellido = binding.etApellido.getText().toString().trim();
+//                String dni = binding.etDNI.getText().toString().trim();
+//                String email = binding.etEmail.getText().toString().trim();
+//                String telefono = binding.etTelefono.getText().toString().trim();
+//
+//                viewModel.actualizarPropietario(token, nombre, apellido, dni, email, telefono, new PerfilViewModel.PerfilCallback() {
+//                    @Override
+//                    public void onSuccess() {
+//                        // Verificar si cambiar contraseña
+//                        String actualClave = binding.etClaveActual.getText().toString().trim();
+//                        String nuevaClave = binding.etNuevaClave.getText().toString().trim();
+//                        if (!actualClave.isEmpty() && !nuevaClave.isEmpty()) {
+//                            viewModel.cambiarPassword(token, actualClave, nuevaClave, new PerfilViewModel.PerfilCallback() {
+//                                @Override
+//                                public void onSuccess() {
+//                                    Toast.makeText(getContext(), "Datos y contraseña actualizados", Toast.LENGTH_SHORT).show();
+//                                    limpiarCamposClave();
+//                                }
+//
+//                                @Override
+//                                public void onError(String error) {
+//                                    Toast.makeText(getContext(), "Datos guardados, pero fallo al cambiar contraseña: " + error, Toast.LENGTH_LONG).show();
+//                                }
+//                            });
+//                        } else {
+//                            Toast.makeText(getContext(), "Datos actualizados", Toast.LENGTH_SHORT).show();
+//                        }
+//
+//                        editMode = false;
+//                        setEditTextsEnabled(false);
+//                        binding.btnEditarGuardar.setText("Editar");
+//                    }
+//
+//                    @Override
+//                    public void onError(String error) {
+//                        Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//            }
 //        });
 //
-//        return view;
+//        return binding.getRoot();
 //    }
 //
 //    private void setEditTextsEnabled(boolean enabled) {
-//        etNombre.setEnabled(enabled);
-//        etApellido.setEnabled(enabled);
-//        etDni.setEnabled(enabled);
-//        etEmail.setEnabled(enabled);
-//        etTelefono.setEnabled(enabled);
-//        etClaveActual.setEnabled(enabled);
-//        etNuevaClave.setEnabled(enabled);
-//        etClave.setEnabled(false);
+//        binding.etNombre.setEnabled(enabled);
+//        binding.etApellido.setEnabled(enabled);
+//        binding.etDNI.setEnabled(enabled);
+//        binding.etEmail.setEnabled(enabled);
+//        binding.etTelefono.setEnabled(enabled);
+//        binding.etClaveActual.setEnabled(enabled);
+//        binding.etNuevaClave.setEnabled(enabled);
+//        // binding.etClave siempre deshabilitado (solo lectura)
+//    }
+//
+//    private void limpiarCamposClave() {
+//        binding.etClaveActual.setText("");
+//        binding.etNuevaClave.setText("");
 //    }
 //}
+
 
 package com.example.inmobiliaria.ui.perfil;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -119,55 +145,80 @@ public class PerfilFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentPerfilBinding.inflate(inflater, container, false);
         viewModel = new ViewModelProvider(this).get(PerfilViewModel.class);
 
-        // 🔹 Observar datos del propietario
+        // Inicialmente los campos de contraseña y clave encriptada deshabilitados
+        binding.etClave.setEnabled(false);
+        binding.etClaveActual.setEnabled(false);
+        binding.etNuevaClave.setEnabled(false);
+
+        // Obtener token
+        String token = requireActivity().getSharedPreferences("inmobiliaria", 0)
+                .getString("token", "");
+        Log.d("PerfilFragment", "🔑 Token obtenido: " + token);
+
+        // Cargar datos del propietario
+        viewModel.cargarDatosPropietario(token);
+
+        // Observadores
         viewModel.getPropietarioLiveData().observe(getViewLifecycleOwner(), propietario -> {
-            binding.etNombre.setText(propietario.getNombre());
-            binding.etApellido.setText(propietario.getApellido());
-            binding.etDNI.setText(propietario.getDni());
-            binding.etEmail.setText(propietario.getEmail());
-            binding.etTelefono.setText(propietario.getTelefono());
-            binding.etClave.setText(propietario.getClave());
+            if (propietario != null) {
+                binding.etNombre.setText(propietario.getNombre());
+                binding.etApellido.setText(propietario.getApellido());
+                binding.etDNI.setText(propietario.getDni());
+                binding.etEmail.setText(propietario.getEmail());
+                binding.etTelefono.setText(propietario.getTelefono());
+                binding.etClave.setText(propietario.getClave());
+            }
         });
 
-        // 🔹 Observar modo edición
         viewModel.getEditMode().observe(getViewLifecycleOwner(), enabled -> {
-            binding.etNombre.setEnabled(enabled);
-            binding.etApellido.setEnabled(enabled);
-            binding.etDNI.setEnabled(enabled);
-            binding.etEmail.setEnabled(enabled);
-            binding.etTelefono.setEnabled(enabled);
-            binding.etClaveActual.setEnabled(enabled);
-            binding.etNuevaClave.setEnabled(enabled);
-            binding.etClave.setEnabled(false);
+            setEditTextsEnabled(enabled);
             binding.btnEditarGuardar.setText(enabled ? "Guardar" : "Editar");
         });
 
-        // 🔹 Observar mensajes
-        viewModel.getMensaje().observe(getViewLifecycleOwner(),
-                msg -> Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show());
+        viewModel.getMensaje().observe(getViewLifecycleOwner(), msg -> {
+            if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        });
 
-        // 🔹 Inicializar ViewModel con token
-        String token = requireActivity().getSharedPreferences("inmobiliaria", 0)
-                .getString("token", "");
-        viewModel.inicializar(token);
+        // Botón Editar/Guardar
+        binding.btnEditarGuardar.setOnClickListener(v -> {
+            String nombre = binding.etNombre.getText().toString().trim();
+            String apellido = binding.etApellido.getText().toString().trim();
+            String dni = binding.etDNI.getText().toString().trim();
+            String email = binding.etEmail.getText().toString().trim();
+            String telefono = binding.etTelefono.getText().toString().trim();
+            String claveActual = binding.etClaveActual.getText().toString().trim();
+            String nuevaClave = binding.etNuevaClave.getText().toString().trim();
 
-        // 🔹 Acción del botón Editar/Guardar
-        binding.btnEditarGuardar.setOnClickListener(v -> viewModel.onEditarGuardarClicked(
-                binding.etNombre.getText().toString().trim(),
-                binding.etApellido.getText().toString().trim(),
-                binding.etDNI.getText().toString().trim(),
-                binding.etEmail.getText().toString().trim(),
-                binding.etTelefono.getText().toString().trim(),
-                binding.etClaveActual.getText().toString().trim(),
-                binding.etNuevaClave.getText().toString().trim()
-        ));
+            viewModel.onEditarGuardarClicked(
+                    token,         // 🔹 IMPORTANTE: token como primer parámetro
+                    nombre,
+                    apellido,
+                    dni,
+                    email,
+                    telefono,
+                    claveActual,
+                    nuevaClave
+            );
+        });
+
 
         return binding.getRoot();
     }
+
+    private void setEditTextsEnabled(boolean enabled) {
+        binding.etNombre.setEnabled(enabled);
+        binding.etApellido.setEnabled(enabled);
+        binding.etDNI.setEnabled(enabled);
+        binding.etEmail.setEnabled(enabled);
+        binding.etTelefono.setEnabled(enabled);
+        binding.etClaveActual.setEnabled(enabled);
+        binding.etNuevaClave.setEnabled(enabled);
+        // binding.etClave siempre deshabilitado (solo lectura)
+    }
+
+
 }
