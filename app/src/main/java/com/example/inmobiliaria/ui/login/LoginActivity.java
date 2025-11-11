@@ -36,7 +36,8 @@ public class LoginActivity extends AppCompatActivity implements SensorEventListe
         loginViewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         observarViewModel();
-
+        // Evento onClick del Login
+        // Se llama al metodo login del ViewModel
         binding.btnLogin.setOnClickListener(v -> {
             String email = binding.etEmail.getText().toString().trim();
             String pass = binding.etPassword.getText().toString().trim();
@@ -55,12 +56,12 @@ public class LoginActivity extends AppCompatActivity implements SensorEventListe
                 Toast.makeText(this, "No hay sensor de movimiento", Toast.LENGTH_LONG).show();
         }
     }
-
+    // Observador
     private void observarViewModel() {
         loginViewModel.getErrorLiveData().observe(this, msg ->
                 Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
         );
-
+        // Observando el exito del login
         loginViewModel.getLoginSuccess().observe(this, success -> {
             if (success != null && success) {
                 Toast.makeText(this, "Login exitoso", Toast.LENGTH_SHORT).show();

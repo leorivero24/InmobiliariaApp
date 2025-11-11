@@ -24,13 +24,13 @@ public class InmueblesViewModel extends AndroidViewModel {
 
     public InmueblesViewModel(@NonNull Application application) {
         super(application);
-        leerInmuebles(); // ✅ igual que el profe
+        leerInmuebles();
     }
 
     public LiveData<List<Inmueble>> getmInmueble() {
         return mInmueble;
     }
-
+       //Este metodo usa ApiService y Retrofit para hacer una llamada al backend.
     public void leerInmuebles() {
         String token = ApiClient.leerToken(getApplication());
         ApiService api = ApiClient.getApiInmobiliaria();

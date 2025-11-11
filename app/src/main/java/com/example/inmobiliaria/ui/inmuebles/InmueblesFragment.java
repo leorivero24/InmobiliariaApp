@@ -23,6 +23,8 @@ public class InmueblesFragment extends Fragment {
     private FragmentInmueblesBinding binding;
     private InmueblesViewModel vm;
 
+    //Esta clase muestra los inmuebles en un RecyclerView
+
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         vm = new ViewModelProvider(this).get(InmueblesViewModel.class);
         binding = FragmentInmueblesBinding.inflate(inflater, container, false);
@@ -37,7 +39,7 @@ public class InmueblesFragment extends Fragment {
                     .commit();
         });
 
-
+        //Esta clase muestra los inmuebles en un RecyclerView.
         vm.getmInmueble().observe(getViewLifecycleOwner(), new Observer<List<Inmueble>>() {
             @Override
             public void onChanged(List<Inmueble> inmuebles) {

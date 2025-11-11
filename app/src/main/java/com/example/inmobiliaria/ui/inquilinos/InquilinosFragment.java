@@ -1,4 +1,3 @@
-//MVVM
 package com.example.inmobiliaria.ui.inquilinos;
 
 import android.os.Bundle;
@@ -10,12 +9,14 @@ import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.inmobiliaria.R;
 import com.example.inmobiliaria.modelo.Contrato;
+import com.example.inmobiliaria.modelo.Inquilino;
 
 import java.util.ArrayList;
 
@@ -39,30 +40,40 @@ public class InquilinosFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(InquilinosViewModel.class);
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
+
         adapter = new InquilinosAdapter(getContext(), new ArrayList<>(), contrato -> {
-            // 🔹 Ya no hay if aquí, solo avisamos al ViewModel
+            // Avisamos al ViewModel qué contrato fue seleccionado
             viewModel.seleccionarContrato(contrato);
         });
+
         recyclerView.setAdapter(adapter);
 
-        // Observa cambios
+        // Observa el estado de carga
         viewModel.getLoading().observe(getViewLifecycleOwner(),
                 isLoading -> progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE)
         );
 
+        // Observa los contratos para actualizar el RecyclerView
         viewModel.getContratosLiveData().observe(getViewLifecycleOwner(),
                 contratos -> adapter.setContratos(contratos)
         );
 
-        // 🔹 Observa el mensaje que genera el ViewModel
-        viewModel.getDialogoMensaje().observe(getViewLifecycleOwner(), mensaje -> {
-                new androidx.appcompat.app.AlertDialog.Builder(getContext())
-                        .setTitle("Datos del Inquilino")
-                        .setMessage(mensaje)
-                        .setPositiveButton("Cerrar", (dialog, which) -> dialog.dismiss())
-                        .show();
+        // 🔹 Observa el inquilino seleccionado y navega al detalle
+        viewModel.getInquilinoSeleccionado().observe(getViewLifecycleOwner(), inquilino -> {
+            if (inquilino != null) {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("inquilino", inquilino);
 
+                DetalleInquilinoFragment detalleFragment = new DetalleInquilinoFragment();
+                detalleFragment.setArguments(bundle);
 
+                FragmentActivity activity = requireActivity();
+                activity.getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.content_frame, detalleFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
         });
 
         // Token y carga inicial

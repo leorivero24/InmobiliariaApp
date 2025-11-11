@@ -45,7 +45,9 @@ public class LoginViewModel extends AndroidViewModel {
     public MutableLiveData<Boolean> getRecoveryEmailSent() { return recoveryEmailSent; }
     public MutableLiveData<Boolean> getShakeDetected() { return shakeDetected; }
 
-    // -------------------- Login --------------------
+    // -------------------- Login --------------------//
+
+    // Metodo login llamado desde el Activity
     public void login(String usuario, String clave) {
         if (usuario.isEmpty() || clave.isEmpty()) {
             errorLiveData.postValue("Ingrese usuario y clave");
@@ -71,6 +73,10 @@ public class LoginViewModel extends AndroidViewModel {
             }
         });
     }
+
+    //Se hace una llamada a la API (Retrofit) para validar las credenciales.
+    //Si el servidor responde con éxito, devuelve un token JWT (una “llave” que identifica al usuario).
+    //Ese token se guarda en el SharedPreferences:
 
     private void guardarToken(String token) {
         SharedPreferences sp = getApplication().getSharedPreferences("inmobiliaria", Context.MODE_PRIVATE);
@@ -100,7 +106,7 @@ public class LoginViewModel extends AndroidViewModel {
         });
     }
 
-    // -------------------- Recuperación de contraseña --------------------
+    // -------------------- Recuperación de contraseña --------------------//
     public void enviarSolicitudRecuperacion(String email) {
         if (email.isEmpty()) {
             errorLiveData.postValue("Por favor ingresa un correo válido");
@@ -121,7 +127,7 @@ public class LoginViewModel extends AndroidViewModel {
         });
     }
 
-    // -------------------- Lógica del sensor --------------------
+    // -------------------- Lógica del sensor --------------------//
     public void procesarSensor(float x, float y, float z, long currentTimeMillis) {
         if ((currentTimeMillis - lastTime) > 100) {
             long diffTime = currentTimeMillis - lastTime;

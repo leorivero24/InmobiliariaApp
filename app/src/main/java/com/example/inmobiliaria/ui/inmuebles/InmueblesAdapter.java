@@ -48,7 +48,7 @@ public class InmueblesAdapter extends RecyclerView.Adapter<InmueblesAdapter.Inmu
         holder.tvDireccion.setText(inmueble.getDireccion());
         holder.tvValor.setText("$" + inmueble.getValor());
 
-        // 🔹 Cargar imagen con Glide (manejo de errores y placeholder)
+        //  Cargar imagen con Glide (manejo de errores y placeholder)
         String urlImagen = ApiClient.BASE_URL + inmueble.getImagen().replace("\\", "/");
         Glide.with(context)
                 .load(urlImagen)
@@ -57,7 +57,7 @@ public class InmueblesAdapter extends RecyclerView.Adapter<InmueblesAdapter.Inmu
                 .centerCrop()
                 .into(holder.imgInmueble);
 
-        // 🔹 Click para abrir DetalleInmuebleFragment (navegación manual)
+        //  Click para abrir DetalleInmuebleFragment (navegación manual)
         holder.cardView.setOnClickListener(v -> {
             Bundle bundle = new Bundle();
             bundle.putSerializable("inmueble", inmueble);

@@ -1,9 +1,8 @@
-//MVVM
 package com.example.inmobiliaria.ui.inquilinos;
 
 import android.app.Application;
+
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -25,7 +24,8 @@ public class InquilinosViewModel extends AndroidViewModel {
 
     private final MutableLiveData<List<Contrato>> contratosLiveData = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>();
-    private final MutableLiveData<String> dialogoMensaje = new MutableLiveData<>();
+    // 🔹 Antes tenías un String, ahora emitimos el objeto Inquilino directamente
+    private final MutableLiveData<Inquilino> inquilinoSeleccionado = new MutableLiveData<>();
 
     public InquilinosViewModel(@NonNull Application application) {
         super(application);
@@ -39,8 +39,9 @@ public class InquilinosViewModel extends AndroidViewModel {
         return loading;
     }
 
-    public LiveData<String> getDialogoMensaje() {
-        return dialogoMensaje;
+    // Nuevo LiveData que se observa en el Fragment para navegar
+    public LiveData<Inquilino> getInquilinoSeleccionado() {
+        return inquilinoSeleccionado;
     }
 
     public void cargarContratos(String token) {
@@ -69,7 +70,7 @@ public class InquilinosViewModel extends AndroidViewModel {
 
                             @Override
                             public void onFailure(Call<Contrato> call, Throwable t) {
-                                // error individual ignorado
+                                // Error individual ignorado
                             }
                         });
                     }
@@ -83,16 +84,11 @@ public class InquilinosViewModel extends AndroidViewModel {
         });
     }
 
-    //  función para manejar clics
+    // 🔹 Ahora el ViewModel sólo emite el inquilino seleccionado
     public void seleccionarContrato(Contrato contrato) {
         if (contrato != null && contrato.getInquilino() != null) {
-            Inquilino inquilino = contrato.getInquilino();
-            String info = "Nombre: " + inquilino.getNombre() + "\n" +
-                    "Apellido: " + inquilino.getApellido() + "\n" +
-                    "DNI: " + inquilino.getDni() + "\n" +
-                    "Teléfono: " + inquilino.getTelefono() + "\n" +
-                    "Email: " + inquilino.getEmail();
-            dialogoMensaje.setValue(info);
+            inquilinoSeleccionado.setValue(contrato.getInquilino());
         }
     }
 }
+
