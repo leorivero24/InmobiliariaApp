@@ -43,7 +43,7 @@ public class InquilinosViewModel extends AndroidViewModel {
     public LiveData<Inquilino> getInquilinoSeleccionado() {
         return inquilinoSeleccionado;
     }
-
+    // Obtiene los Inmuebles Alquilados
     public void cargarContratos(String token) {
         loading.setValue(true);
         ApiService api = ApiClient.getRetrofit().create(ApiService.class);
