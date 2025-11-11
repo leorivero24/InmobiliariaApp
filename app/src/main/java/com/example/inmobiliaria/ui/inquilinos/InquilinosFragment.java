@@ -41,6 +41,9 @@ public class InquilinosFragment extends Fragment {
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
 
+
+
+        //2- Recibe el clic desde el adapter y se lo pasa al ViewModel
         adapter = new InquilinosAdapter(getContext(), new ArrayList<>(), contrato -> {
             // Avisamos al ViewModel qué contrato fue seleccionado
             viewModel.seleccionarContrato(contrato);
@@ -53,12 +56,15 @@ public class InquilinosFragment extends Fragment {
                 isLoading -> progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE)
         );
 
+
         // Observa los contratos para actualizar el RecyclerView
         viewModel.getContratosLiveData().observe(getViewLifecycleOwner(),
                 contratos -> adapter.setContratos(contratos)
         );
 
-        // 🔹 Observa el inquilino seleccionado y navega al detalle
+
+
+        // 4-  Cuando el ViewModel emite un inquilino, navega al detalle:
         viewModel.getInquilinoSeleccionado().observe(getViewLifecycleOwner(), inquilino -> {
             if (inquilino != null) {
                 Bundle bundle = new Bundle();

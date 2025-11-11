@@ -84,7 +84,9 @@ public class InquilinosViewModel extends AndroidViewModel {
         });
     }
 
-    // 🔹 Ahora el ViewModel sólo emite el inquilino seleccionado
+
+
+    // 3- Guarda el inquilino seleccionado en un LiveData
     public void seleccionarContrato(Contrato contrato) {
         if (contrato != null && contrato.getInquilino() != null) {
             inquilinoSeleccionado.setValue(contrato.getInquilino());

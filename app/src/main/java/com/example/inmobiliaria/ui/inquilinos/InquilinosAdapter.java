@@ -85,6 +85,9 @@ public class InquilinosAdapter extends RecyclerView.Adapter<InquilinosAdapter.Vi
                     .centerCrop()
                     .into(ivImagen);
 
+
+
+            // 1- Usuario toca "Ver" en un inquilino, Cuando el usuario toca el botón Ver, se avisa al listener:
             btnVer.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onVerClick(contrato);

@@ -24,6 +24,7 @@ public class DetalleInquilinoViewModel extends AndroidViewModel {
         return inquilinoLiveData;
     }
 
+    // 5- Recibe el objeto desde el bundle y lo guarda en un LiveData:
     public void cargarDesdeBundle(Bundle args) {
         if (args == null) return;
 
