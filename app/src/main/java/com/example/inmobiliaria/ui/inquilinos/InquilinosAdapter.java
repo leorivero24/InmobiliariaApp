@@ -2,17 +2,14 @@ package com.example.inmobiliaria.ui.inquilinos;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.inmobiliaria.R;
+import com.example.inmobiliaria.databinding.ItemInquilinosCardBinding;
 import com.example.inmobiliaria.modelo.Contrato;
 import com.example.inmobiliaria.request.ApiClient;
 
@@ -20,9 +17,9 @@ import java.util.List;
 
 public class InquilinosAdapter extends RecyclerView.Adapter<InquilinosAdapter.ViewHolder> {
 
-    private Context context;
+    private final Context context;
     private List<Contrato> contratos;
-    private OnVerClickListener listener;
+    private final OnVerClickListener listener;
 
     public interface OnVerClickListener {
         void onVerClick(Contrato contrato);
@@ -37,8 +34,9 @@ public class InquilinosAdapter extends RecyclerView.Adapter<InquilinosAdapter.Vi
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_inquilinos_card, parent, false);
-        return new ViewHolder(view);
+        LayoutInflater inflater = LayoutInflater.from(context);
+        ItemInquilinosCardBinding binding = ItemInquilinosCardBinding.inflate(inflater, parent, false);
+        return new ViewHolder(binding);
     }
 
     @Override
@@ -59,36 +57,27 @@ public class InquilinosAdapter extends RecyclerView.Adapter<InquilinosAdapter.Vi
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        ImageView ivImagen;
-        TextView tvDireccion,tvTipo,tvValor;
-        Button btnVer;
+        private final ItemInquilinosCardBinding binding;
 
-        public ViewHolder(@NonNull View itemView) {
-            super(itemView);
-            ivImagen = itemView.findViewById(R.id.imgInmueble);
-            tvDireccion = itemView.findViewById(R.id.tvDireccion);
-            tvTipo = itemView.findViewById(R.id.tvTipo);
-            tvValor = itemView.findViewById(R.id.tvValor);
-            btnVer = itemView.findViewById(R.id.btnVer);
+        public ViewHolder(@NonNull ItemInquilinosCardBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
         }
 
         public void bind(Contrato contrato, OnVerClickListener listener) {
-            tvDireccion.setText(contrato.getInmueble().getDireccion());
-            tvTipo.setText("Tipo: " + contrato.getInmueble().getTipo());
-            tvValor.setText("Valor: $" + contrato.getInmueble().getValor());
-
+            binding.tvDireccion.setText(contrato.getInmueble().getDireccion());
+            binding.tvTipo.setText("Tipo: " + contrato.getInmueble().getTipo());
+            binding.tvValor.setText("Valor: $" + contrato.getInmueble().getValor());
 
             String urlImagen = ApiClient.BASE_URL + contrato.getInmueble().getImagen().replace("\\", "/");
-            Glide.with(itemView.getContext())
+            Glide.with(binding.getRoot().getContext())
                     .load(urlImagen)
                     .placeholder(R.drawable.house_placeholder)
                     .centerCrop()
-                    .into(ivImagen);
-
-
+                    .into(binding.imgInmueble);
 
             // 1- Usuario toca "Ver" en un inquilino, Cuando el usuario toca el botón Ver, se avisa al listener:
-            btnVer.setOnClickListener(v -> {
+            binding.btnVer.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onVerClick(contrato);
                 }
